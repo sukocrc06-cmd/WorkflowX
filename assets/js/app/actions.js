@@ -154,7 +154,26 @@ const A={
     if(r.ok){let n=60;el.dataset.wait='1';el.disabled=true;const base=el.textContent;const iv=setInterval(()=>{n--;if(!el.isConnected||n<=0){clearInterval(iv);if(el.isConnected){el.disabled=false;delete el.dataset.wait;el.textContent=base}return}el.textContent=t('{n} sn sonra tekrar gönderebilirsin',{n})},1000)}},
   pwEye(d,el){const i=document.getElementById(d.for);if(!i)return;const show=i.type==='password';i.type=show?'text':'password';el.setAttribute('aria-pressed',String(show));el.setAttribute('aria-label',show?t('Şifreyi gizle'):t('Şifreyi göster'));el.innerHTML=svg(show?'eyeOff':'eye');i.focus()},
   guestSkip(){prefs.set('import.'+AUTH.user.id,'skipped');closeDlg();if(!S.onboarded)onboard()},
-  signOut(d){authSignOut(d.v==='all')},
+  signOut(d){closePops();authSignOut(d.v==='all')},
+  deleteAccount(){
+    const email=String(AUTH.user?.email||'');if(!email)return;
+    openDlg(`<form>${dlgHead(t('Hesabın silinsin mi?'))}<div class="dlg-b">
+      <p style="margin-top:0">${t('Bu işlem geri alınamaz. Şunlar kalıcı olarak silinir:')}</p>
+      <ul class="plain-list"><li>${svg('x','i s')} ${t('Hesabın ve giriş bilgilerin')}</li><li>${svg('x','i s')} ${t('Buluttaki tüm görev, proje, takvim ve ayarların')}</li><li>${svg('x','i s')} ${t('Bu cihazdaki hesap verilerin')}</li></ul>
+      <p><button type="button" class="linkbtn" data-a="export">${svg('upload','i s')} ${t('Önce verilerimin yedeğini indir')}</button></p>
+      <div class="f"><label for="delc">${t('Onaylamak için e-posta adresini yaz')}: <b>${esc(email)}</b></label><input id="delc" name="confirm" type="email" autocomplete="off" spellcheck="false" maxlength="254" required></div>
+      <div class="err" role="alert"></div></div>
+      <div class="dlg-f"><button type="button" class="btn" data-a="closeDlg">${t('Vazgeç')}</button><button class="btn danger-solid">${svg('trash')}${t('Hesabımı kalıcı olarak sil')}</button></div></form>`,(fd,f,btn)=>{
+      if(String(fd.get('confirm')||'').trim().toLowerCase()!==email.toLowerCase())return t('E-posta adresi eşleşmiyor.');
+      withLoading(btn||f.querySelector('.danger-solid'),async()=>{
+        const r=await authDeleteAccount();
+        if(!r.ok){const b=f.querySelector('.err');if(b)b.textContent=r.msg;return}
+        closeDlg();location.hash='#/';setTimeout(()=>toast(t('Hesabın ve tüm verilerin silindi.')),300);
+      });
+      return KEEP_OPEN;
+    });
+  },
+  userMenu(){const p=$('#upop'),b=$('#av');if(!p.hidden){p.hidden=true;b.setAttribute('aria-expanded','false');return}closePops();renderUserMenu();p.hidden=false;b.setAttribute('aria-expanded','true');p.querySelector('a,button')?.focus()},
   obSkip(){S.onboarded=true;OB.data={};save();closeDlg();render();toast(t('İstediğin zaman Ayarlar’dan çalışma saatlerini değiştirebilirsin.'))},
   obBack(){const f=dlg.querySelector('form');if(OB.step===3&&f){OB.data.project=f.elements.project.value;OB.data.task=f.elements.task.value}onboard(Math.max(1,OB.step-1))},
   obDemo(){const f=dlg.querySelector('form');const n=f.elements.name?.value.trim();if(n)S.profile.name=n.slice(0,120);S.onboarded=true;OB.data={};closeDlg();seed()},
@@ -189,13 +208,14 @@ function importJSON(text){
     UI.draft=null;setTimeout(()=>{go('overview');undoToast(msg,id)});
   });
 }
-function closePops(){$('#notif').hidden=true;$('#bellbtn')?.setAttribute('aria-expanded','false');const w=$('#wspop');if(w&&!w.hidden){w.hidden=true;$('#wsbtn')?.setAttribute('aria-expanded','false')}}
+function closePops(){$('#notif').hidden=true;$('#bellbtn')?.setAttribute('aria-expanded','false');const up=$('#upop');if(up&&!up.hidden){up.hidden=true;$('#av')?.setAttribute('aria-expanded','false')}const w=$('#wspop');if(w&&!w.hidden){w.hidden=true;$('#wsbtn')?.setAttribute('aria-expanded','false')}}
 let suppressClick=false;
 document.addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;e.preventDefault();e.stopPropagation();return}
   if(e.target.closest('#cmdk'))return;
   const el=e.target.closest('[data-a]');
-  if(!e.target.closest('#notif')&&!e.target.closest('[data-a="bell"]')&&!e.target.closest('#wspop')&&!e.target.closest('[data-a="ws"]'))closePops();
+  if(!e.target.closest('#notif')&&!e.target.closest('[data-a="bell"]')&&!e.target.closest('#wspop')&&!e.target.closest('[data-a="ws"]')&&!e.target.closest('#upop')&&!e.target.closest('[data-a="userMenu"]'))closePops();
+  if(e.target.closest('#upop a'))closePops();
   if(!e.target.closest('#more')&&!e.target.closest('[data-a="more"]')&&!$('#more').hidden){$('#more').hidden=true;renderShell()}
   if(e.target.closest('#more a'))$('#more').hidden=true;
   if(!el||el.disabled)return;

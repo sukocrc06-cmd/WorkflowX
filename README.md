@@ -1,5 +1,7 @@
 # WorkFlowX
 
+**Canlı:** https://workflow-x-gules.vercel.app
+
 **İşi zamana bağlayan planlama uygulaması.** Görev → odak bloğu → teslim tarihi.
 
 - **Next.js kabuğu (beklemede):** `web/` — ana uygulama `index.html`; bu klasör ileride gerekirse diye duruyor. Kurulum: `web/README.md`.

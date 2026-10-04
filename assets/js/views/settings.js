@@ -11,7 +11,8 @@ function accountCard(){
       <div class="kv"><dt>${t('E-posta')}</dt><dd>${ver?`<span class="pill st-done">${svg('check','i s')}${t('Doğrulandı')}</span>`:`<span class="pill st-hold">${t('Doğrulanmadı')}</span>`}</dd></div>
       <div class="kv"><dt>${t('Veriler')}</dt><dd>${cloudCell()}</dd></div></dl>
     ${prov!=='google'?`<form data-f="pwchange" class="pw-change" novalidate><h3 class="mini-h">${t('Şifreyi değiştir')}</h3><div class="f2"><div class="f"><label for="npw">${t('Yeni şifre')}</label><div class="pw-wrap"><input id="npw" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72"><button type="button" class="pw-eye" data-a="pwEye" data-for="npw" aria-label="${t('Şifreyi göster')}" aria-pressed="false">${svg('eye')}</button></div></div><div class="f"><label for="npw2">${t('Yeni şifre (tekrar)')}</label><input id="npw2" name="password2" type="password" autocomplete="new-password" maxlength="72"></div></div><div class="err" role="alert"></div><button class="btn">${t('Şifreyi güncelle')}</button></form>`:''}
-    <div class="acct-actions"><button type="button" class="btn" data-a="signOut">${svg('logout')}${t('Çıkış yap')}</button><button type="button" class="btn ghost danger" data-a="signOut" data-v="all">${t('Tüm cihazlardan çık')}</button></div></section>`;
+    <div class="acct-actions"><button type="button" class="btn" data-a="signOut">${svg('logout')}${t('Çıkış yap')}</button><button type="button" class="btn ghost danger" data-a="signOut" data-v="all">${t('Tüm cihazlardan çık')}</button></div>
+    <div class="danger-zone"><div><b>${t('Hesabı sil')}</b><p class="muted small">${t('Hesabın ve buluttaki tüm görev, proje, takvim verilerin kalıcı olarak silinir. Geri alınamaz.')}</p></div><button type="button" class="btn danger" data-a="deleteAccount">${svg('trash')}${t('Hesabı sil')}</button></div></section>`;
 }
 /* Cloud sync status inside the account card. */
 function cloudCell(){

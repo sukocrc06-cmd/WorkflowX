@@ -26,6 +26,16 @@ function syncBadge(){
   if(st==='error'||st==='failed'){el.setAttribute('role','button');el.tabIndex=0;el.dataset.a='retrySave'}else{el.removeAttribute('data-a');el.removeAttribute('tabindex');el.setAttribute('role','status')}
   el.title=SYNC.at?t('Son kayıt: {t}',{t:fTime(SYNC.at)}):t(l);
 }
+/* Avatar menu: who is signed in, quick links, sign out. */
+function renderUserMenu(){
+  const u=authOn()?AUTH.user:null,nm=(u&&authName(u))||S.profile.name.trim()||t('Hesabın');
+  $('#upop').innerHTML=`<div class="um-h"><span class="avatar ${avHue(nm)}" aria-hidden="true">${esc(initials(nm))}</span><span><b>${esc(nm)}</b><small>${u?esc(u.email||''):t('Hesapsız · bu cihazda')}</small></span></div>
+    <a class="pop-item" href="#/app/settings/profile">${svg('users')}${t('Profil ve hesap')}</a>
+    <a class="pop-item" href="#/app/settings">${svg('settings')}${t('Ayarlar')}</a>
+    <button type="button" class="pop-item" data-a="theme">${svg('moon')}${t('Temayı değiştir')}</button>
+    <div class="sep"></div>
+    ${u?`<button type="button" class="pop-item um-out" data-a="signOut">${svg('logout')}${t('Çıkış yap')}</button>`:authOn()?`<a class="pop-item" href="#/login">${svg('logout')}${t('Giriş yap')}</a>`:''}`;
+}
 function renderNotif(){
   const all=notifications(),tab=UI.notifTab,list=tab==='unread'?all.filter(n=>!isRead(n)):all,un=all.filter(n=>!isRead(n)).length;
   $('#notif').innerHTML=`<div class="pop-h row" style="justify-content:space-between"><span>${t('Bildirimler')}</span>${un?`<button type="button" class="linkbtn" data-a="notifAll">${t('Tümünü okundu say')}</button>`:''}</div>
@@ -49,7 +59,7 @@ function renderShell(){
   $('#mobnav').innerHTML=MOBILE_NAV.map(([k,l,i])=>`<a class="${navOn(k)?'on':''}" href="${hrefFor(k)}" ${navOn(k)?'aria-current="page"':''}>${svg(i)}<span>${t(l)}</span></a>`).join('')+`<button type="button" class="${moreOn?'on':''}" data-a="more" aria-expanded="${!$('#more').hidden}" aria-controls="more">${svg('menu')}<span>${t('Daha')}</span></button>`;
   $('#more').innerHTML=MORE_NAV.map(([k,l,i])=>`<a class="pop-item" href="${hrefFor(k)}">${svg(i)}${t(l)}</a>`).join('')+`<div class="row" style="padding:8px 10px">${langSwitch()}<button type="button" class="btn sm" data-a="theme">${svg('moon')}${t('Tema')}</button></div>${authOn()&&AUTH.user?`<button type="button" class="pop-item" data-a="signOut">${svg('logout')}${t('Çıkış yap')}</button>`:''}`;
   const n=S.profile.name.trim();$('#av').textContent=n?initials(n):'?';$('#av').className='avatar '+(n?avHue(n):'');
-  $('#av').setAttribute('aria-label',t('Profil ve ayarlar'));
+  $('#av').setAttribute('aria-label',t('Hesap menüsü'));
   const un=ready?unreadCount():0;
   {const bb=$('#bellbtn'),pu=+bb.dataset.un||0;bb.dataset.un=un;if(un>pu&&!RM()){bb.classList.remove('has-new');void bb.offsetWidth;bb.classList.add('has-new')}}
   $('#belldot').hidden=!un;$('#belldot').textContent=un>9?'9+':un||'';

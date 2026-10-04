@@ -15,6 +15,8 @@ Backend kararı: **Supabase** (Firebase planı iptal edildi; `FIREBASE_PREP.md` 
 | İlk girişte "Bu cihazdaki verileri hesabına ekleyelim mi?" | Hazır |
 | Her hesabın bu cihazda ayrı veri alanı (hesap değişince bellek temizlenir) | Hazır |
 | Ayarlar → Profil: hesap kartı, şifre değiştir, çıkış, tüm cihazlardan çık | Hazır |
+| Hesabı kalıcı olarak silme (bulut verileriyle birlikte) | Hazır, `delete_my_account` fonksiyonu kurulmalı (adım 9) |
+| Avatar menüsü ve tanıtım sayfasında çıkış | Hazır |
 | Verilerin buluta senkronu (her cihazda aynı veriler, çevrimdışı çalışma) | Hazır, `user_data` tablosu kurulmalı (adım 8) |
 
 Supabase ayarlanmadıysa uygulama eskisi gibi **hesapsız** çalışır. Giriş sayfaları bunu açıkça söyler.
@@ -47,8 +49,8 @@ window.WFX_SUPABASE = window.WFX_SUPABASE || {
 ### 4. Yönlendirme adreslerini izin ver
 Dashboard → **Authentication → URL Configuration**:
 
-- **Site URL:** `http://localhost:5500/index.html` (yayına alınınca gerçek alan adın)
-- **Redirect URLs:** `http://localhost:5500/**`, `http://127.0.0.1:5500/**`, yayındaki alan adın `https://…/**`
+- **Site URL:** `https://workflow-x-gules.vercel.app`
+- **Redirect URLs:** `https://workflow-x-gules.vercel.app/**`, `http://localhost:5500/**`
 
 ### 5. E-posta ile giriş
 **Authentication → Providers → Email** açık olmalı.
@@ -144,6 +146,44 @@ grant select, insert, update on public.user_data to authenticated;
 ```
 
 Tablo yoksa uygulama bozulmaz: veriler yalnızca o cihazda kalır, Ayarlar → Profil'de bunu söyleyen bir not çıkar.
+
+### 9. Hesap silme fonksiyonu (SQL Editor'de bir kez çalıştır)
+
+Aynı betik `docs/sql/delete_account.sql` dosyasında da var. Ayarlar → Profil → **Hesabı sil** bunu çağırır.
+
+```sql
+-- WorkFlowX · Hesap silme (v1.1)
+-- Supabase → SQL Editor → New query → bu dosyanın tamamını yapıştır → Run. Bir kez yeterli.
+-- Uygulamadaki "Hesabı sil" düğmesi bu fonksiyonu çağırır. Yalnızca giriş yapmış kişi
+-- kendi hesabını silebilir; başkasının hesabına dokunamaz (auth.uid() ile sınırlı).
+
+create or replace function public.delete_my_account() returns void
+language plpgsql security definer set search_path = '' as $$
+declare uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'Giriş yapılmamış' using errcode = '42501';
+  end if;
+  delete from public.user_data where user_id = uid;   -- bulut verileri
+  delete from public.profiles  where id = uid;        -- profil
+  delete from auth.users       where id = uid;        -- hesap (oturumlar ve Google bağlantısı da silinir)
+end $$;
+
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;
+```
+
+## Yayın (Vercel)
+
+Canlı adres: **https://workflow-x-gules.vercel.app** (GitHub `main` dalına her gönderimde yeniden yayınlanır).
+
+- Vercel → proje → **Settings → Build and Deployment**:
+  - **Framework Preset:** Other
+  - **Root Directory:** boş (depo kökü). `web` seçiliyse eski Next.js kabuğu yayınlanır.
+  - Build Command / Output Directory: boş bırak (derleme yok, `index.html` doğrudan sunulur).
+- `vercel.json` güvenlik başlıklarını ekler (CSP: yalnızca kendi dosyaları, Google Fonts ve bu Supabase projesi; iframe içinde açılamaz).
+- `.vercelignore` şunları yayına göndermez: `web/`, `qa/`, `tools/`, `docs/`, `.bat`.
+- `assets/js/config.supabase.js` içindeki Publishable key herkese açık olabilir; Secret key asla depoya girmemeli.
 
 ## Nasıl çalışıyor?
 

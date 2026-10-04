@@ -7,6 +7,7 @@
    Boş bırakılırsa uygulama hesapsız (yalnızca bu cihazda) çalışmaya devam eder. */
 window.WFX_SUPABASE = window.WFX_SUPABASE || {
   url: 'https://hkgsjcftnldnzqyyphsk.supabase.co',
-  anonKey: '',        // ← Publishable key (sb_publishable_...) buraya
-  google: true          // Google ile giriş butonunu göster (Supabase'de Google sağlayıcısı açık olmalı)
+  anonKey: 'sb_publishable_QgqFAkvDbn704KblDk68pg_z-_fDlks',        // ← Publishable key (sb_publishable_...) buraya
+  google: true,         // Google ile giriş butonunu göster (Supabase'de Google sağlayıcısı açık olmalı)
+  site: 'https://workflow-x-gules.vercel.app'   // yayındaki adres: dosyadan açınca Google girişi buradan yapılır
 };

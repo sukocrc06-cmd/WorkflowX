@@ -63,7 +63,14 @@
         if (st.op === 'update') { const row = d.rows[uid]; if (!match(row)) return { data: null, error: null }; if (st.p.rev !== row.rev + 1) return { data: null, error: { code: '40001', message: 'rev bir artmalı' } }; Object.assign(row, JSON.parse(JSON.stringify(st.p)), { updated_at: new Date().toISOString() }); put(d); return { data: pick(row, st.ret), error: null } }
       }
       const from = table => { const st = { table, op: 'select', cols: '*', f: [] }; const b = { select(c) { if (st.op === 'select') st.cols = c; else st.ret = c; return b }, insert(p) { st.op = 'insert'; st.p = p; return b }, update(p) { st.op = 'update'; st.p = p; return b }, eq(k, v) { st.f.push([k, v]); return b }, maybeSingle() { return run(st) }, then(a, c) { return run(st).then(a, c) } }; return b };
-      return { auth, from };
+      async function rpc(name) {
+        await new Promise(r => setTimeout(r, 10)); log('rpc', name);
+        if (window.__sbNoRpc) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.' + name + ' without parameters in the schema cache' } };
+        const s = sess(); if (!s) return { data: null, error: { code: '42501', message: 'Giriş yapılmamış' } };
+        if (name === 'delete_my_account') { const d = DB(); delete d.users[s.user.email]; if (d.rows) delete d.rows[s.user.id]; put(d); return { data: null, error: null } }
+        return { data: null, error: { code: 'PGRST202', message: 'unknown' } };
+      }
+      return { auth, from, rpc };
     }
   };
 })();

@@ -45,7 +45,10 @@
         <div id="notif" class="pop right" hidden></div>
       </div>
       <button class="btn primary" data-a="quick" id="qabtn"></button>
-      <button class="avatar" data-a="go" data-v="settings" id="av">?</button>
+      <div style="position:relative">
+        <button class="avatar" data-a="userMenu" id="av" aria-haspopup="true" aria-expanded="false" aria-controls="upop">?</button>
+        <div id="upop" class="pop right user-pop" hidden></div>
+      </div>
     </header>
     <div id="netbar" class="netbar" role="status" hidden></div>
     <main id="main" tabindex="-1"></main>

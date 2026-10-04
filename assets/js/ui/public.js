@@ -18,7 +18,11 @@ const FEAT_ART=[
  '<svg viewBox="0 0 240 96"><rect class="b" x="40" y="22" width="160" height="52" rx="12"/><rect class="s" x="54" y="36" width="70" height="8" rx="4"/><rect class="s" x="54" y="52" width="46" height="8" rx="4"/><g class="mv"><rect class="b" x="140" y="34" width="22" height="22" rx="5"/><rect class="b" x="166" y="34" width="22" height="22" rx="5"/></g><text x="151" y="49" font-size="10" text-anchor="middle" font-family="monospace" fill="currentColor">⌘</text><text x="177" y="49" font-size="10" text-anchor="middle" font-family="monospace" fill="currentColor">K</text></svg>'
 ];
 const brand=()=>`<a class="logo" href="#/" aria-label="WorkFlowX — ${t('Ana sayfa')}"><span class="logo-mark" aria-hidden="true">W</span><span>WorkFlow<b>X</b></span></a>`;
-const publicNav=()=>`<header class="l-nav">${brand()}<nav class="row" aria-label="${t('Site')}">${langSwitch()}<a class="btn ghost hide-sm" href="#/login">${t('Giriş yap')}</a><a class="btn primary" href="#/app">${t('Uygulamayı aç')}</a></nav></header>`;
+const publicNav=()=>{
+  const u=authOn()?AUTH.user:null;
+  return`<header class="l-nav">${brand()}<nav class="row" aria-label="${t('Site')}">${langSwitch()}${u
+    ?`<button type="button" class="btn ghost" data-a="signOut" aria-label="${t('Çıkış yap')}">${svg('logout')}<span class="hide-sm" aria-hidden="true">${t('Çıkış yap')}</span></button><a class="btn primary" href="#/app">${t('Uygulamaya git')}</a>`
+    :`<a class="btn ghost hide-sm" href="#/login">${t('Giriş yap')}</a><a class="btn primary" href="#/app">${t('Uygulamayı aç')}</a>`}</nav></header>`};
 const publicFooter=()=>`<footer class="l-foot"><div class="l-foot-brand">${brand()}<p>${t('İşi planla. Zamanı ayır. Projeyi bitir.')}</p></div>
   <nav class="l-foot-links" aria-label="${t('Alt bilgi')}"><div><b>${t('Ürün')}</b><a href="#/app">${t('Uygulama')}</a><a href="#/signup">${t('Kayıt ol')}</a><a href="#/login">${t('Giriş yap')}</a></div>
   <div><b>${t('Şirket')}</b><a href="#/security">${t('Güvenlik')}</a><a href="#/contact">${t('İletişim')}</a></div>

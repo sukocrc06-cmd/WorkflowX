@@ -15,7 +15,8 @@ const AUTH_CFG=(()=>{
   const url=String(c.url||'').trim().replace(/\/+$/,''),key=String(c.anonKey||'').trim();
   const okUrl=/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/i.test(url)||/^https?:\/\/(localhost|127\.0\.0\.1)(:\d{2,5})?$/i.test(url);
   const okKey=/^[A-Za-z0-9._-]{20,}$/.test(key);
-  return okUrl&&okKey?{url,key,google:c.google!==false}:null;
+  const site=String(c.site||'').trim().replace(/\/+$/,''),okSite=/^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(site);   // the published app (e.g. Vercel)
+  return okUrl&&okKey?{url,key,google:c.google!==false,site:okSite?site:''}:null;
 })();
 const AUTH={mode:AUTH_CFG?'supabase':'local',client:null,user:null,ready:false,error:null,recovery:false,_uid:undefined};
 const authOn=()=>AUTH.mode==='supabase';
@@ -117,8 +118,9 @@ async function authSignUp(name,email,password){
   catch(e){return{ok:false,msg:authError(e)}}
 }
 async function authGoogle(){
-  if(!canRedirect()){
-    if(await launcherUp()){location.href=LAUNCH_URL+'#/login?go=google';return{ok:true}}   // continue on the launcher address
+  if(!canRedirect()){                                                // opened from a file: continue on a web address
+    if(await launcherUp()){location.href=LAUNCH_URL+'#/login?go=google';return{ok:true}}
+    if(AUTH_CFG.site){location.href=AUTH_CFG.site+'/#/login?go=google';return{ok:true}}
     return{ok:false,msg:t(LAUNCH_HINT)};
   }
   try{const {error}=await AUTH.client.auth.signInWithOAuth({provider:'google',options:{redirectTo:authRedirect()}});if(error)throw error;return{ok:true}}
@@ -142,6 +144,23 @@ async function authSignOut(everywhere){
   if(typeof cloudFlush==='function')await cloudFlush();              // send pending changes first
   try{await AUTH.client.auth.signOut({scope:everywhere?'global':'local'})}catch(e){console.warn('[auth] sign-out',e)}
   AUTH.user=null;AUTH.recovery=false;applyAccount(null);go('login');toast(everywhere?t('Tüm cihazlardan çıkış yapıldı.'):t('Çıkış yapıldı.'));
+}
+/* Delete the account for good: the database function removes the user, their cloud data and
+   profile (docs/sql/delete_account.sql). Then this device forgets the account's local copy too. */
+async function authDeleteAccount(){
+  const u=AUTH.user;if(!u)return{ok:false,msg:t('Önce giriş yapmalısın.')};
+  try{
+    const {error}=await AUTH.client.rpc('delete_my_account');
+    if(error){if(error.code==='PGRST202'||/could not find the function/i.test(error.message||''))return{ok:false,msg:t('Hesap silme henüz kurulmamış: Supabase SQL Editor\'de docs/sql/delete_account.sql betiğini çalıştır.')};throw error}
+  }catch(e){return{ok:false,msg:authError(e)}}
+  const uid=u.id,base=KEY+'.u.'+uid;
+  if(typeof cloudStop==='function')cloudStop();
+  [base,base+'.base',base+'.corrupt'].forEach(k=>storage.adapter.remove(k));
+  ['sync.'+uid,'import.'+uid].forEach(k=>prefs.del(k));
+  AUTH._leaving=true;
+  try{await AUTH.client.auth.signOut({scope:'local'})}catch{}             // the server session is already gone
+  AUTH.user=null;AUTH.recovery=false;applyAccount(null);
+  return{ok:true};
 }
 /* Password rules shared by sign-up and reset: ≥ 8 chars, a letter and a digit. */
 function pwProblem(p){p=String(p||'');if(p.length<8)return t('Şifre en az 8 karakter olmalı.');if(p.length>72)return t('Şifre en fazla 72 karakter olabilir.');if(!/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(p)||!/\d/.test(p))return t('Şifrede en az bir harf ve bir rakam olmalı.');return''}
