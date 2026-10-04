@@ -1,0 +1,16 @@
+{
+  "name": "WorkFlowX",
+  "short_name": "WorkFlowX",
+  "description": "İşini, projelerini ve zamanını tek akışta planla.",
+  "lang": "tr",
+  "start_url": "./index.html#/app/today",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f3ef",
+  "theme_color": "#161614",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

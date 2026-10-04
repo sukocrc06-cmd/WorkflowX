@@ -1,0 +1,8 @@
+Supabase → Authentication → Emails → Templates alanına yapıştırılacak KONU (Subject) satırları:
+
+Confirm signup   : WorkFlowX · E-posta adresini doğrula
+Reset password   : WorkFlowX · Şifre sıfırlama bağlantın
+Change email     : WorkFlowX · E-posta değişikliğini onayla
+
+Gövde (Body / Message) için ilgili .html dosyasının tamamını kopyalayıp yapıştır.
+{{ .ConfirmationURL }}, {{ .Email }}, {{ .NewEmail }}, {{ .Data.full_name }} değişkenlerini silme.

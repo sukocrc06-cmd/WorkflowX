@@ -1,0 +1,6 @@
+/* ================= BOARD drag & drop ================= */
+document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.card[data-drag]');if(!c)return;e.dataTransfer.setData('text/plain',c.dataset.drag);e.dataTransfer.effectAllowed='move';requestAnimationFrame(()=>c.classList.add('dragging'))});
+document.addEventListener('dragend',()=>{document.querySelectorAll('.card.dragging').forEach(c=>c.classList.remove('dragging'));document.querySelectorAll('.col.over').forEach(c=>c.classList.remove('over'))});
+document.addEventListener('dragover',e=>{const col=e.target.closest&&e.target.closest('.col[data-status]');if(!col)return;e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.col.over').forEach(c=>{if(c!==col)c.classList.remove('over')});col.classList.add('over')});
+document.addEventListener('drop',e=>{const col=e.target.closest&&e.target.closest('.col[data-status]');if(!col)return;e.preventDefault();col.classList.remove('over');const x=taskOf(e.dataTransfer.getData('text/plain'));if(!x||x.status===col.dataset.status)return;let r=null;const id=commit(t('Görev taşındı'),()=>{r=opSetStatus(x,col.dataset.status)});render();undoToast(t('“{x}” → {s}',{x:x.title,s:ST(x.status)})+(r&&r.next?' · '+t('Sonraki tekrar: {d}',{d:relDue(r.next.due)}):''),id)});
+

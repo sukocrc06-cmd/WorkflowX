@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="WorkFlowX — işini, projelerini ve zamanını tek akışta planla.">
+<meta name="theme-color" content="#f6f6f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f12" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WorkFlowX">
+<link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+<title>WorkFlowX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/landing.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="assets/css/features.css">
+<link rel="stylesheet" href="assets/css/overlays.css">
+<link rel="stylesheet" href="assets/css/motion.css">
+<link rel="stylesheet" href="assets/css/modern.css">
+<link rel="stylesheet" href="assets/css/calendar.css">
+<link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+<div id="landing" hidden></div>
+
+<div id="app">
+  <button type="button" class="skip" data-a="skip" data-t="İçeriğe geç"></button>
+  <aside class="side" aria-label="Sidebar"><div id="navind"></div><div id="sidein"></div></aside>
+  <div style="min-width:0">
+    <header class="top">
+      <button class="search" data-a="cmdk" id="searchbtn"><svg class="i" data-icon="search"></svg><span data-t="Ara veya komut çalıştır…"></span><kbd>Ctrl K</kbd></button>
+      <div class="spacer"></div>
+      <a class="demo-chip" id="demochip" href="#/app/settings/data" hidden></a>
+      <span class="sync" id="sync" role="status" aria-live="polite" hidden></span>
+      <div class="timer" id="timer" role="group" aria-label="Zamanlayıcı" hidden></div>
+      <div style="position:relative">
+        <button class="btn icon ghost bell" data-a="bell" id="bellbtn"><svg class="i" data-icon="bell"></svg><span class="dot" id="belldot" hidden></span></button>
+        <div id="notif" class="pop right" hidden></div>
+      </div>
+      <button class="btn primary" data-a="quick" id="qabtn"></button>
+      <button class="avatar" data-a="go" data-v="settings" id="av">?</button>
+    </header>
+    <div id="netbar" class="netbar" role="status" hidden></div>
+    <main id="main" tabindex="-1"></main>
+  </div>
+  <nav class="mob-nav" id="mobnav" aria-label="Mobile"></nav>
+  <button type="button" class="fab" id="fab" data-a="quick"><svg class="i" data-icon="plus"></svg></button>
+  <div id="more" hidden></div>
+</div>
+
+<dialog id="dlg"></dialog>
+<dialog id="cmdk" aria-label="Command palette"></dialog>
+<div id="toasts" aria-live="polite"></div>
+
+<script src="assets/js/i18n.en.js"></script>
+<script src="assets/js/config.supabase.js"></script>
+<script src="assets/js/core/storage.js"></script>
+<script src="assets/js/core/auth.js"></script>
+<script src="assets/js/core/i18n.js"></script>
+<script src="assets/js/core/icons.js"></script>
+<script src="assets/js/core/utils.js"></script>
+<script src="assets/js/core/validate.js"></script>
+<script src="assets/js/core/state.js"></script>
+<script src="assets/js/core/sync.js"></script>
+<script src="assets/js/core/history.js"></script>
+<script src="assets/js/domain/capacity.js"></script>
+<script src="assets/js/domain/activity.js"></script>
+<script src="assets/js/domain/recurrence.js"></script>
+<script src="assets/js/domain/conflicts.js"></script>
+<script src="assets/js/domain/team.js"></script>
+<script src="assets/js/domain/tasks.js"></script>
+<script src="assets/js/domain/templates.js"></script>
+<script src="assets/js/domain/planning.js"></script>
+<script src="assets/js/domain/insights.js"></script>
+<script src="assets/js/domain/health.js"></script>
+<script src="assets/js/domain/notifications.js"></script>
+<script src="assets/js/domain/roadmap.js"></script>
+<script src="assets/js/domain/calendar.js"></script>
+<script src="assets/js/app/router.js"></script>
+<script src="assets/js/ui/components.js"></script>
+<script src="assets/js/ui/states.js"></script>
+<script src="assets/js/ui/shell.js"></script>
+<script src="assets/js/ui/public.js"></script>
+<script src="assets/js/views/today.js"></script>
+<script src="assets/js/views/overview.js"></script>
+<script src="assets/js/views/tasks.js"></script>
+<script src="assets/js/views/task.js"></script>
+<script src="assets/js/views/projects.js"></script>
+<script src="assets/js/views/project.js"></script>
+<script src="assets/js/views/calendar.js"></script>
+<script src="assets/js/views/planning.js"></script>
+<script src="assets/js/views/analytics.js"></script>
+<script src="assets/js/views/roadmap.js"></script>
+<script src="assets/js/views/team.js"></script>
+<script src="assets/js/views/settings.js"></script>
+<script src="assets/js/ui/render.js"></script>
+<script src="assets/js/ui/fx.js"></script>
+<script src="assets/js/features/timer.js"></script>
+<script src="assets/js/ui/forms.js"></script>
+<script src="assets/js/features/planning.js"></script>
+<script src="assets/js/features/ics.js"></script>
+<script src="assets/js/data/demo.js"></script>
+<script src="assets/js/ui/toast.js"></script>
+<script src="assets/js/app/actions.js"></script>
+<script src="assets/js/ui/conflict.js"></script>
+<script src="assets/js/features/calendar-fx.js"></script>
+<script src="assets/js/features/keyboard.js"></script>
+<script src="assets/js/features/command-palette.js"></script>
+<script src="assets/js/features/calendar-drag.js"></script>
+<script src="assets/js/features/board-dnd.js"></script>
+<script src="assets/js/features/quick-add.js"></script>
+<script src="assets/js/ui/onboarding.js"></script>
+<script src="assets/js/app/boot.js"></script>
+</body>
+</html>

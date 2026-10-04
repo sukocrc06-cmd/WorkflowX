@@ -1,0 +1,34 @@
+/* ============ MOTION ============ */
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}}
+@keyframes fade{from{opacity:0}}
+@keyframes fadeOut{to{opacity:0}}
+@keyframes popIn{from{opacity:0;transform:translateY(-4px) scale(.97)}}
+@keyframes dlgIn{from{opacity:0;transform:translateY(10px) scale(.975)}}
+@keyframes dlgOut{to{opacity:0;transform:translateY(6px) scale(.985)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.95)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.97)}}
+@keyframes shrink{to{transform:scaleX(0)}}
+@keyframes drop{from{opacity:0;transform:translateY(-10px) scale(.96)}}
+@keyframes draw{from{stroke-dashoffset:24}}
+@keyframes strike{from{background-size:0 1.5px}to{background-size:100% 1.5px}}
+@keyframes ping{0%{transform:scale(1);opacity:.55}100%{transform:scale(3);opacity:0}}
+@keyframes pulse{50%{opacity:.3}}
+@keyframes drawline{to{stroke-dashoffset:0}}
+@keyframes cellIn{from{opacity:0;transform:scale(.6)}}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+main.enter>*{animation:rise var(--d3) var(--ease-out) both;animation-delay:calc(var(--i,0)*50ms)}
+main.enter .grid-dash>*,main.enter .rm-grid>*,main.enter .proj-grid>*{animation:rise var(--d3) var(--ease-out) both;animation-delay:calc(120ms + var(--j,0)*45ms)}
+main.enter .bar>i,main.enter .stack,main.enter .seg{animation:grow .8s var(--ease-out) both;animation-delay:.2s}
+main.enter .ev.draft{animation:drop .45s var(--ease-out) both;animation-delay:calc(var(--k,0)*20ms + .12s)}
+/* One-shot state feedback (never looped) */
+@keyframes chkPop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:none}}
+@keyframes newFlash{from{background-color:var(--accent-soft)}to{background-color:transparent}}
+.just-done .chk,.just-done.chk,.detail-title.just-done .chk{animation:chkPop var(--d3) var(--spring)}
+.detail-title.just-done h1{animation:fade var(--d3) var(--ease-out)}
+.li.just-new,.card.just-new{animation:newFlash 1.4s var(--ease-out)}
+.err.shake:not(:empty){animation:shake .28s var(--ease-io)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}
+  .rv{opacity:1;transform:none}
+}

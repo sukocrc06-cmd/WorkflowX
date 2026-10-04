@@ -1,0 +1,69 @@
+/* ================= SETTINGS  (#/app/settings/:section) =================
+   Grouped into sections with their own address; each form saves only its own fields.
+   Appearance and language apply immediately (no Save button to forget). */
+const SETTINGS_SECTIONS=[['profile','Profil','users'],['appearance','Görünüm ve dil','moon'],['work','Çalışma saatleri','clock'],['notifications','Bildirimler','bell'],['shortcuts','Kısayollar','keyboard'],['templates','Şablonlar','tasks'],['data','Veri ve yedek','upload'],['privacy','Gizlilik','lock'],['developer','Geliştirici','settings']];
+/* Account card (Faz 2): who is signed in, how, and the security actions. */
+function accountCard(){
+  if(!authOn())return`<section class="acct-card"><div class="acct-h">${svg('lock')}<div><b>${t('Hesap')}</b><p class="muted small">${t('Hesap sistemi bu kurulumda bağlı değil; verilerin yalnızca bu cihazda.')}</p></div></div><a class="btn sm" href="#/signup">${t('Hesap oluştur')}</a></section>`;
+  const u=AUTH.user;if(!u)return'';const prov=authProvider(u),ver=!!(u.email_confirmed_at||u.confirmed_at);
+  return`<section class="acct-card" aria-labelledby="acct-h"><div class="acct-h"><span class="avatar ${avHue(authName(u)||u.email)}" aria-hidden="true">${esc(initials(authName(u)||u.email))}</span><div><b id="acct-h">${esc(authName(u)||t('Hesabın'))}</b><p class="muted small">${esc(u.email||'')}</p></div></div>
+    <dl class="kvs"><div class="kv"><dt>${t('Giriş yöntemi')}</dt><dd>${prov==='google'?`${GOOGLE_G} Google`:t('E-posta ve şifre')}</dd></div>
+      <div class="kv"><dt>${t('E-posta')}</dt><dd>${ver?`<span class="pill st-done">${svg('check','i s')}${t('Doğrulandı')}</span>`:`<span class="pill st-hold">${t('Doğrulanmadı')}</span>`}</dd></div>
+      <div class="kv"><dt>${t('Veriler')}</dt><dd>${cloudCell()}</dd></div></dl>
+    ${prov!=='google'?`<form data-f="pwchange" class="pw-change" novalidate><h3 class="mini-h">${t('Şifreyi değiştir')}</h3><div class="f2"><div class="f"><label for="npw">${t('Yeni şifre')}</label><div class="pw-wrap"><input id="npw" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72"><button type="button" class="pw-eye" data-a="pwEye" data-for="npw" aria-label="${t('Şifreyi göster')}" aria-pressed="false">${svg('eye')}</button></div></div><div class="f"><label for="npw2">${t('Yeni şifre (tekrar)')}</label><input id="npw2" name="password2" type="password" autocomplete="new-password" maxlength="72"></div></div><div class="err" role="alert"></div><button class="btn">${t('Şifreyi güncelle')}</button></form>`:''}
+    <div class="acct-actions"><button type="button" class="btn" data-a="signOut">${svg('logout')}${t('Çıkış yap')}</button><button type="button" class="btn ghost danger" data-a="signOut" data-v="all">${t('Tüm cihazlardan çık')}</button></div></section>`;
+}
+/* Cloud sync status inside the account card. */
+function cloudCell(){
+  if(CLOUD.missing)return`${t('Yalnızca bu cihazda. Bulut tablosu henüz kurulmamış: Supabase SQL Editor\'de docs/AUTH_SUPABASE.md içindeki betiği çalıştır.')}`;
+  const when=CLOUD.at?t('Son eşitleme: {t}',{t:fTime(CLOUD.at)}):'';
+  return`<span class="cloud-row">${svg(CLOUD.status==='failed'?'alert':'check','i s')}<span>${t('Hesabında, bulutta saklanıyor; her cihazda aynı veriler.')}${when?`<br><small class="muted">${esc(when)}</small>`:''}</span><button type="button" class="btn sm" data-a="syncNow">${svg('refresh')}${t('Şimdi eşitle')}</button></span>`;
+}
+function settingsSection(k){
+  const s=S.settings,es=estStats(),ics=S.events.filter(e=>e.source==='ics').length,tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'—';
+  const save=`<div class="err" id="serr" role="alert"></div><button class="btn primary">${t('Kaydet')}</button>`;
+  const theme=document.documentElement.dataset.theme||'system';
+  switch(k){
+    case 'profile':return`<form data-f="settings" data-s="profile">
+      <div class="f2"><div class="f"><label for="sn">${t('Ad soyad')}</label><input id="sn" name="name" maxlength="120" autocomplete="name" value="${esc(S.profile.name)}"></div><div class="f"><label for="sr">${t('Rol')}</label><input id="sr" name="role" maxlength="120" value="${esc(S.profile.role)}" placeholder="${t('Örn. Yazılım geliştirici')}"></div></div>
+      <div class="f"><label for="swn">${t('Çalışma alanı adı')}</label><input id="swn" name="wsname" maxlength="120" value="${esc(S.workspace.name)}" placeholder="${t('Kişisel çalışma alanı')}"></div>
+      ${save}</form>${accountCard()}`;
+    case 'appearance':return`<fieldset class="seg-choice"><legend class="lbl">${t('Tema')}</legend>${[['system','Sistem'],['light','Aydınlık'],['dark','Karanlık']].map(([v,l])=>`<label><input type="radio" name="theme" value="${v}" data-c="theme" ${theme===v?'checked':''}><span>${t(l)}</span></label>`).join('')}</fieldset>
+      <fieldset class="accent-pick"><legend class="lbl">${t('Vurgu rengi')}</legend><div class="row">${ACCENTS.map(([k,l,hex])=>`<label title="${t(l)}"><input type="radio" name="accent" value="${k}" data-c="accent" ${(document.documentElement.dataset.accent||'indigo')===k?'checked':''}><span style="--sw:${hex}"></span><small>${t(l)}</small></label>`).join('')}</div></fieldset>
+      <fieldset class="seg-choice"><legend class="lbl">${t('Dil')}</legend>${[['tr','Türkçe'],['en','English']].map(([v,l])=>`<label><input type="radio" name="lang" value="${v}" data-c="langset" ${LANG===v?'checked':''}><span>${l}</span></label>`).join('')}</fieldset>
+      <p class="hint">${t('Değişiklikler hemen uygulanır. Hareket azaltma tercihin işletim sisteminden okunur.')}</p>`;
+    case 'work':return`<form data-f="settings" data-s="work">
+      <fieldset class="f" style="border:0;padding:0"><legend class="lbl" style="margin-bottom:6px">${t('Çalışma günleri')}</legend><div class="row">${[1,2,3,4,5,6,0].map(d=>`<label class="pill daypick"><input type="checkbox" name="wd" value="${d}" ${s.workDays.includes(d)?'checked':''}> ${dayName(d,true)}</label>`).join('')}</div></fieldset>
+      <div class="f3"><div class="f"><label for="ws">${t('Mesai başlangıcı')}</label><select id="ws" name="workStart">${[...Array(24)].map((_,h)=>`<option value="${h}" ${h===s.workStart?'selected':''}>${pad(h)}:00</option>`).join('')}</select></div>
+      <div class="f"><label for="we">${t('Mesai bitişi')}</label><select id="we" name="workEnd">${[...Array(24)].map((_,i)=>i+1).map(h=>`<option value="${h}" ${h===s.workEnd?'selected':''}>${h===24?'24':pad(h)}:00</option>`).join('')}</select></div>
+      <div class="f"><label for="md">${t('Günde planlanabilir süre (sa)')}</label><input id="md" name="maxDaily" type="number" min="0.5" max="16" step="0.5" value="${s.maxDaily}"></div></div>
+      <p class="hint">${t('Toplantılar ve odak blokları bu süreden düşer; kişisel zaman düşmez.')}</p>
+      <label class="switch f"><input type="checkbox" name="useFactor" ${s.useFactor?'checked':''}><span><b style="font-weight:500;color:var(--text)">${t('Kişisel tahmin katsayısını planlamada kullan')}</b><br><small style="color:var(--muted);font-weight:400">${es.ok?t('Şu anki katsayı ×{f} ({n} tamamlanan görevden). Açıksa 2 saatlik bir tahmin {x} olarak planlanır.',{f:num(es.factor),n:es.n,x:hrs(2*Math.min(3,Math.max(.5,es.factor)))}):t('Henüz yeterli veri yok ({n}/3 görev). Zamanlayıcıyla süre kaydettikçe etkinleşir.',{n:es.n})}</small></span></label>
+      <h3 class="mini-h">${t('Saat dilimi')}</h3><p class="hint tz-info">${svg('globe','i s')} ${t('Saat dilimi: {z}. Tüm saatler duvar saati olarak saklanır; başka bir saat diliminde açarsan aynı saatleri görürsün.',{z:esc(tz)})}${S.profile.tz&&S.profile.tz!==tz?` <b class="late">${t('Dikkat: profilin {z} saat diliminde oluşturuldu.',{z:esc(S.profile.tz)})}</b>`:''}</p>${save}</form>`;
+    case 'notifications':return`<form data-f="settings" data-s="notifications">${NOTIF_LIVE.map(k=>`<label class="switch f"><input type="checkbox" name="n_${k}" ${s.notify?.[k]!==false?'checked':''}><span>${t(NOTIF_CATS[k][0])}</span></label>`).join('')}<p class="hint">${t('Görev ataması, bahsetme ve ekip bildirimleri hesaplar geldiğinde açılacak.')}</p>${save}</form>`;
+    case 'shortcuts':return keysTable();
+    case 'templates':return`<div class="list">${allTemplates().map(tp=>`<div class="li"><div class="t"><b>${esc(tplName(tp))}</b><div class="meta"><span>${tp.kind==='project'?t('Proje şablonu'):t('Görev şablonu')}</span><span>${tp.builtin?t('Hazır'):t('Senin')}</span><span>${t('{n} öğe',{n:tp.items.length})}</span></div></div>${tp.builtin?'':`<button type="button" class="btn sm icon ghost" data-a="delTpl" data-id="${tp.id}" aria-label="${t('Şablonu sil')}: ${esc(tp.name)}">${svg('trash')}</button>`}</div>`).join('')}</div><p class="hint">${t('Bir görevi veya projeyi kendi sayfasından “Şablon olarak kaydet” ile ekleyebilirsin.')}</p>`;
+    case 'data':return`<h3 class="mini-h">${t('Yedek')}</h3><p class="muted" style="margin-top:0">${t('Tüm verilerini JSON olarak indir ya da bir yedeği geri yükle. İçe aktarma varsayılan olarak mevcut verilerini korur.')}</p>
+      <div class="row"><button class="btn" data-a="export">${svg('upload')}${t('JSON dışa aktar')}</button><label class="btn" style="cursor:pointer">${t('JSON içe aktar')}<input type="file" accept="application/json,.json" data-c="imp" hidden></label>${prefs.get(BACKUP_KEY)?`<button class="btn ghost" data-a="downloadBackup">${t('Son içe aktarmadan önceki veriyi indir')}</button>`:''}</div>
+      <h3 class="mini-h">${t('Takvim içe aktarma (.ics)')}</h3><p class="muted" style="margin-top:0">${t('Google Takvim: Ayarlar → İçe ve dışa aktar → Dışa aktar. Outlook: Takvim → Paylaş/Yayımla → ICS. İndirdiğin .ics dosyasını buraya yükle; son 30 ve önümüzdeki 90 günün etkinlikleri (tekrarlayanlar dahil) eklenir, tüm gün etkinlikleri atlanır.')}</p>
+      <div class="row"><label class="btn" style="cursor:pointer">${svg('upload')}${t('.ics dosyası seç')}<input type="file" accept=".ics,text/calendar" data-c="ics" hidden></label><button class="btn danger" data-a="unics" ${ics?'':'disabled'}>${t('İçe aktarılanları sil ({n})',{n:ics})}</button></div>
+      <h3 class="mini-h">${t('Demo verisi')}</h3><div class="row"><button class="btn" data-a="seed">${t('Demo verisi yükle')}</button><button class="btn" data-a="unseed">${t('Demo verisini temizle')}</button></div>`;
+    case 'privacy':return`<ul class="plain-list"><li>${svg('lock','i s')} ${t('Bu sürümde tüm veriler yalnızca bu tarayıcıda saklanır; hiçbir sunucuya gönderilmez.')}</li><li>${svg('check','i s')} ${t('Planlama önerileri sen onaylamadan takvime yazılmaz.')}</li><li>${svg('spark','i s')} ${t('Akıllı planlama şu an kurallara dayalı çalışır; yapay zekâ eklendiğinde açıkça belirtilecek.')}</li></ul>
+      <p class="muted">${t('Hesaplar geldiğinde veriler şifreli bağlantıyla senin hesabına eşitlenecek ve yalnızca senin ve davet ettiğin kişilerin erişimine açık olacak.')}</p>
+      <div class="danger-zone"><div><b>${t('Tüm verileri sil')}</b><p class="muted small">${t('Projeler, görevler, etkinlikler ve bloklar bu tarayıcıdan silinir. Hemen ardından geri alabilirsin.')}</p></div><button class="btn danger" data-a="reset">${t('Tüm verileri sil')}</button></div>`;
+    case 'developer':return`<div class="dev-row"><span>${t('Yavaş bağlantı simülasyonu')} <small class="muted">(${t('açılışta 1,2 sn gecikme')})</small></span><button type="button" class="btn sm" data-a="devToggle" data-k="delay" aria-pressed="${!!+prefs.get('dev.delay',0)}">${+prefs.get('dev.delay',0)?t('Açık'):t('Kapalı')}</button></div>
+      <div class="dev-row"><span>${t('Veri yükleme hatası simülasyonu')}</span><button type="button" class="btn sm" data-a="devToggle" data-k="fail" aria-pressed="${prefs.get('dev.fail')==='1'}">${prefs.get('dev.fail')==='1'?t('Açık'):t('Kapalı')}</button></div>
+      <div class="dev-row"><span>${t('Kayıt durumu göstergesi')}</span><span class="row">${['saving','saved','offline','syncing','synced','failed'].map(x=>`<button type="button" class="btn sm" data-a="devSync" data-v="${x}">${x}</button>`).join('')}</span></div>
+      <div class="dev-row"><span>${t('Depolanan veri')}</span><span class="muted small">${t('Şema v{v} · {k} KB · {n} kayıt',{v:SCHEMA_VERSION,k:Math.ceil(JSON.stringify(S).length/1024),n:S.tasks.length+S.projects.length+S.events.length+S.blocks.length})}</span></div>
+      <div class="dev-row"><span>${t('Hata sayfaları')}</span><span class="row"><a class="btn sm" href="#/app/bulunamadi">404</a><a class="btn sm" href="#/app/admin">403</a></span></div>`;
+  }
+  return'';
+}
+V.settings=()=>{
+  const cur=SETTINGS_SECTIONS.some(([k])=>k===UI.sub)?UI.sub:'profile',[,label]=SETTINGS_SECTIONS.find(([k])=>k===cur);
+  return`<div class="page-h"><div><h1>${t('Ayarlar')}</h1><p>${t('Planlama; çalışma günlerini, saatlerini ve günlük kapasiteni kullanır.')}</p></div></div>
+  <div class="settings">
+    <nav class="set-nav" aria-label="${t('Ayar bölümleri')}">${SETTINGS_SECTIONS.map(([k,l,i])=>`<a href="#/app/settings/${k}" class="${k===cur?'on':''}" ${k===cur?'aria-current="page"':''}>${svg(i,'i s')}<span>${t(l)}</span></a>`).join('')}</nav>
+    <section class="panel set-body" aria-labelledby="set-h"><div class="panel-h"><h2 id="set-h">${t(label)}</h2></div><div class="panel-b">${settingsSection(cur)}</div></section>
+  </div>`;
+};

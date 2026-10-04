@@ -1,0 +1,33 @@
+/* ============ BASE ============ */
+*{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--f-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:"cv11","ss01"}
+h1,h2,h3,h4,.logo,.kpi .v,.dlg-h h2{font-family:var(--f-display)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--text);text-decoration-color:var(--accent-line);text-underline-offset:3px}
+::selection{background:var(--accent-soft);color:var(--text)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+svg.i.s{width:13px;height:13px;vertical-align:-2px}
+kbd{font:500 11px/1 var(--f-display);padding:3px 5px 2px;border:1px solid var(--border);border-bottom-width:2px;border-radius:5px;color:var(--muted);background:var(--surface);white-space:nowrap}
+em.nm{font-family:var(--f-serif);font-style:italic;font-weight:400;letter-spacing:0;font-size:1.12em}
+
+/* ============ BUTTONS ============ */
+.btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:500;white-space:nowrap;
+  transition:background-color var(--d1),border-color var(--d1),color var(--d1),transform var(--d1) var(--ease-out),box-shadow var(--d2)}
+.btn:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:var(--ink-text)}
+.btn.primary:hover{background:var(--ink-hover);border-color:var(--ink-hover)}
+.btn.primary kbd{background:transparent;color:inherit;opacity:.6;border-color:color-mix(in srgb,var(--ink-text) 30%,transparent)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.danger{color:var(--danger)}
+.btn.sm{height:30px;padding:0 10px;font-size:13px}
+.btn.icon{width:36px;padding:0;justify-content:center}
+.btn.sm.icon{width:30px}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none}
+.btn.rec{color:var(--danger)}
+.btn .arr{transition:transform var(--d2) var(--ease-out)}
+.btn:hover .arr{transform:translateX(3px)}

@@ -1,0 +1,3 @@
+/* ================= TOAST ================= */
+function toast(msg,action){const life=action?7000:3500,el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.style.setProperty('--life',life+'ms');el.innerHTML=`<span>${esc(msg)}</span>`;if(action){const b=document.createElement('button');b.textContent=action.label;b.onclick=()=>{el.remove();action.fn()};el.appendChild(b)}const box=$('#toasts');box.appendChild(el);while(box.children.length>3)box.firstChild.remove();setTimeout(()=>{if(!el.isConnected)return;el.classList.add('out');setTimeout(()=>el.remove(),200)},life)}
+
