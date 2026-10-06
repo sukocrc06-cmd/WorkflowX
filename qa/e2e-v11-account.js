@@ -9,7 +9,9 @@ const SITE = 'https://workflow-x-gules.vercel.app';
 const MOCK = fs.readFileSync(path.join(__dirname, 'mock-supabase.js'), 'utf8');
 const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 const VERCEL = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
-const IGNORE = fs.readFileSync(path.join(ROOT, '.vercelignore'), 'utf8').split(/\r?\n/).filter(Boolean);
+/* Build exactly like Vercel does (vercel.json buildCommand) and serve only the output folder. */
+require('child_process').execFileSync(process.execPath, [path.join(ROOT, 'tools', 'build.js'), 'dist'], { stdio: 'ignore' });
+const DIST = path.join(ROOT, VERCEL.outputDirectory);
 const cfg = site => `window.WFX_SUPABASE={url:'https://hkgsjcftnldnzqyyphsk.supabase.co',anonKey:'${'k'.repeat(40)}',google:true${site ? `,site:'${SITE}'` : ''}};`;
 const results = []; let errs = [];
 async function step(name, fn) { errs = []; try { await fn(); if (errs.length) throw new Error('console: ' + errs.join(' | ')); results.push(['PASS', name]) } catch (e) { results.push(['FAIL', name, e.message.split('\n')[0]]) } }
@@ -27,9 +29,8 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 async function emulateVercel(ctx) {
   await ctx.route(SITE + '/**', route => {
     const u = new URL(route.request().url()), rel = decodeURIComponent(u.pathname).replace(/^\/+/, '') || 'index.html';
-    const blocked = IGNORE.some(g => g.startsWith('*.') ? rel.endsWith(g.slice(1)) : rel === g || rel.startsWith(g + '/'));
-    const f = path.join(ROOT, rel);
-    if (blocked || !f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return route.fulfill({ status: 404, body: 'not found' });
+    const f = path.join(DIST, rel);
+    if (!f.startsWith(DIST) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return route.fulfill({ status: 404, body: 'not found' });
     route.fulfill({ status: 200, headers: { 'content-type': TYPES[path.extname(f)] || 'application/octet-stream', ...headersFor(u.pathname) }, body: fs.readFileSync(f) });
   });
 }
@@ -131,6 +132,15 @@ const axe = async p => { await p.addScriptTag({ content: AXE }); const v = await
       await ev(p, () => closeDlg()); await open(p, '#/'); await wait(p, 2500); v = await axe(p); ok(!v.length, `${vw}/${th} landing: ` + v.join(' ; '));
       await ctx.close();
     }
+  });
+
+  await step('Sign-up / Google errors from Supabase are explained (DB trigger, email, key, redirect); unknown ones show a plain-text code', async () => {
+    const { ctx, p } = await page(browser); await open(p, '#/signup');
+    const m = await ev(p, () => [authError({ message: 'Database error saving new user', status: 500, code: 'unexpected_failure' }), authError({ message: 'Error sending confirmation email', status: 500 }), authError({ message: 'Invalid API key', status: 401 }), authError({ message: 'Something odd <b>x</b>', code: 'weird_code' })]);
+    ok(/fix_signup\.sql/.test(m[0]) && /e-postası gönderilemedi/.test(m[1]) && /anahtarı geçersiz/.test(m[2]), 'mapping: ' + m.join(' | '));
+    ok(/\(weird_code\)$/.test(m[3]) && !/</.test(m[3]), 'unknown error detail: ' + m[3]);
+    errs = errs.filter(e => !/\[auth\]/.test(e));
+    await ctx.close();
   });
 
   await browser.close();

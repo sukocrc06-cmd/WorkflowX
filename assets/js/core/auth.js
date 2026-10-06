@@ -46,7 +46,13 @@ function authError(e){
   if(/expired|invalid.*(link|token|code)|otp_expired|flow_state/i.test(m+code))return t('Bağlantının süresi dolmuş ya da geçersiz. Yeni bir bağlantı iste.');
   if(/provider is not enabled|unsupported provider/i.test(m))return t('Bu giriş yöntemi Supabase projesinde henüz açılmamış.');
   if(/signup.*disabled|signups not allowed/i.test(m))return t('Yeni kayıtlar şu an kapalı.');
-  console.warn('[auth]',e);return t('İşlem tamamlanamadı. Lütfen tekrar dene.');
+  if(/database error (saving|finding|updating)|unexpected_failure/i.test(m+' '+code))return t('Hesap oluşturulurken Supabase veritabanı hata verdi (kayıt tetikleyicisi). Supabase SQL Editor\'de docs/sql/fix_signup.sql betiğini çalıştır.');
+  if(/sending (confirmation|recovery|magic link|email)|smtp|email_send/i.test(m+' '+code))return t('Doğrulama e-postası gönderilemedi. Supabase e-posta ayarlarını kontrol et ya da birkaç dakika sonra tekrar dene.');
+  if(/invalid api key|no api key|apikey/i.test(m))return t('Supabase anahtarı geçersiz. assets/js/config.supabase.js içindeki Publishable key\'i kontrol et.');
+  if(/redirect|not allowed|unauthorized_client/i.test(m))return t('Yönlendirme adresine izin verilmemiş. Supabase → Authentication → URL Configuration → Redirect URLs listesine bu sitenin adresini ekle.');
+  console.warn('[auth]',e);
+  const detail=String(code||m||'').replace(/[^\w .:'’,()-]/g,'').trim().slice(0,90);   // plain text only; shown with textContent
+  return t('İşlem tamamlanamadı. Lütfen tekrar dene.')+(detail?' ('+detail+')':'');
 }
 
 /* Start-up: load SDK, restore the session, finish OAuth / email-link redirects (?code=…). */

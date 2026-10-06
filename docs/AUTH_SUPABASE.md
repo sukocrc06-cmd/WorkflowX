@@ -173,16 +173,17 @@ revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
 ```
 
+## Sorun giderme: kayıt / Google girişi "İşlem tamamlanamadı"
+
+Supabase, yeni kullanıcıyı eklerken çalışan tetikleyici (`handle_new_user`) hata verirse kullanıcıyı oluşturmaz ("Database error saving new user"). Çözüm: SQL Editor'de `docs/sql/fix_signup.sql` betiğini çalıştır; tetikleyici artık kaydı hiçbir durumda engellemez.
+
 ## Yayın (Vercel)
 
 Canlı adres: **https://workflow-x-gules.vercel.app** (GitHub `main` dalına her gönderimde yeniden yayınlanır).
 
-- Vercel → proje → **Settings → Build and Deployment**:
-  - **Framework Preset:** Other
-  - **Root Directory:** boş (depo kökü). `web` seçiliyse eski Next.js kabuğu yayınlanır.
-  - Build Command / Output Directory: boş bırak (derleme yok, `index.html` doğrudan sunulur).
+- Derleme ayarları `vercel.json` içinde: `tools/build.js` yalnızca `index.html`, `manifest.webmanifest` ve `assets/` klasörünü `dist/` içine kopyalar; site oradan yayınlanır. Bu yüzden `qa/`, `docs/`, `tools/`, `web/` asla yayına çıkmaz.
+- Vercel'de **Root Directory** boş (önerilen) ya da `web` olabilir; ikisinde de aynı site yayınlanır (`web/vercel.json` aynı derlemeyi yapar). Dashboard'daki Framework / Build / Output ayarlarını `vercel.json` geçersiz kılar.
 - `vercel.json` güvenlik başlıklarını ekler (CSP: yalnızca kendi dosyaları, Google Fonts ve bu Supabase projesi; iframe içinde açılamaz).
-- `.vercelignore` şunları yayına göndermez: `web/`, `qa/`, `tools/`, `docs/`, `.bat`.
 - `assets/js/config.supabase.js` içindeki Publishable key herkese açık olabilir; Secret key asla depoya girmemeli.
 
 ## Nasıl çalışıyor?
