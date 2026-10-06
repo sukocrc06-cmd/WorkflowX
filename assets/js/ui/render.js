@@ -39,5 +39,5 @@ function render(){
   if(routeChanged&&UI.boot==='ready'){window.scrollTo(0,0);if(!dlg.open&&!cmdk.open)main.focus({preventScroll:true});document.title=pageTitle()+' · WorkFlowX'}
   if(typeof calAfterRender==='function')calAfterRender(routeChanged&&UI.boot==='ready');
 }
-function pageTitle(){const m={today:'Bugün',overview:'Genel Bakış',tasks:'Görevlerim',projects:'Projeler',calendar:'Takvim',planning:'Planlama',analytics:'Analiz',team:'Ekip',settings:'Ayarlar',roadmap:'Yol Haritası',notfound:'Sayfa bulunamadı',forbidden:'Erişim yok'};
+function pageTitle(){const m={today:'Bugün',overview:'Genel Bakış',tasks:'Görevlerim',projects:'Projeler',calendar:'Takvim',planning:'Planlama',analytics:'Analiz',report:'Haftalık rapor',team:'Ekip',settings:'Ayarlar',roadmap:'Yol Haritası',notfound:'Sayfa bulunamadı',forbidden:'Erişim yok'};
   if(UI.view==='task')return taskOf(UI.param)?.title||t('Görev');if(UI.view==='project')return projectOf(UI.param)?.name||t('Proje');return t(m[UI.view]||'WorkFlowX')}

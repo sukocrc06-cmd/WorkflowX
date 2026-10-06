@@ -154,11 +154,11 @@ async function signIn(p, email, pw) { await open(p, '#/login'); await fill(p, { 
     await ctx.close();
   });
 
-  await step('Roadmap: Faz 2 is complete (incl. cloud sync); the current phase is Faz 12', async () => {
+  await step('Roadmap: Faz 2 is complete (incl. cloud sync); the current phase is Faz 13 (new roadmap)', async () => {
     const { ctx, p } = await page(browser); await open(p, '#/'); await addUser(p, 'q@ornek.com', 'Parola123', 'Q'); await signIn(p, 'q@ornek.com', 'Parola123'); await ev(p, () => closeDlg());
     await ev(p, () => { location.hash = '#/app/roadmap' }); await wait(p, 400);
-    ok(/Şu anki faz/.test(await p.textContent('.rm-now')) && /Faz 12/.test(await p.textContent('.rm-now')), 'no current-phase card');
-    ok(await p.$('#rm-12.is-now'), 'phase 12 not highlighted');
+    ok(/Şu anki faz/.test(await p.textContent('.rm-now')) && /Faz 13/.test(await p.textContent('.rm-now')), 'no current-phase card');
+    ok(await p.$('#rm-13.is-now'), 'phase 13 not highlighted');
     ok(await ev(p, () => rmPct(ROADMAP[2].items)) === 100 && await ev(p, () => rmState('p2j')) === 'done', 'Faz 2 not complete');
     await ctx.close();
     const l = await page(browser, { sb: false }); await open(l.p, '#/app/roadmap'); await wait(l.p, 300); await l.p.evaluate(() => { if (dlg.open) closeDlg() });

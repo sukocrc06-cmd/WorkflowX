@@ -173,6 +173,10 @@ revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
 ```
 
+### 10. Güvenlik testleri (isteğe bağlı, istediğin zaman)
+
+`docs/sql/rls_tests.sql` dosyasını SQL Editor'de çalıştır. İki deneme kullanıcısıyla 12 kontrol yapar (başkasının verisini görme/değiştirme/ekleme, sürüm atlatma, satır devretme, silme, profil gizliliği, giriş yapmamış erişim, hesap silme) ve sonunda her şeyi geri alır. **"Success"** = hepsi geçti; kırmızı hata = hangi testin kaldığını yazar.
+
 ## Sorun giderme: kayıt / Google girişi "İşlem tamamlanamadı"
 
 Supabase, yeni kullanıcıyı eklerken çalışan tetikleyici (`handle_new_user`) hata verirse kullanıcıyı oluşturmaz ("Database error saving new user"). Çözüm: SQL Editor'de `docs/sql/fix_signup.sql` betiğini çalıştır; tetikleyici artık kaydı hiçbir durumda engellemez.

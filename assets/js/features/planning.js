@@ -7,19 +7,48 @@
 const PlanningService={
   provider:'rules',                         // 'rules' now · 'ai' later
   async suggest(tasks,request=null,opts={}){
-    const sim=storage.simulate;if(sim.delay)await sleep(Math.min(sim.delay,3000));
+    const lim=planUsage.check();if(!lim.ok)throw Object.assign(new Error('rate'),{userMsg:t('Çok sık öneri istendi ({n}/{m} son bir saatte). {w} dakika sonra tekrar dene.',{n:lim.used,m:PLAN_LIMIT.n,w:lim.waitMin})});
+    const t0=performance.now(),sim=storage.simulate;if(sim.delay)await sleep(Math.min(sim.delay,3000));
     /* Open dependencies that still need time are planned too — a task cannot start before them. */
     const set=new Map(tasks.map(x=>[x.id,x])),added=[];
     const pull=x=>(x.deps||[]).map(taskOf).forEach(d=>{if(d&&d.status!=='done'&&mine(d)&&!set.has(d.id)&&remainingH(d)>0){set.set(d.id,d);added.push(d.id);pull(d)}});
     tasks.forEach(pull);
     const all=[...set.values()],r=planMany(all,opts);
-    return validatePlan({id:uid(),source:this.provider,request,createdAt:new Date().toISOString(),taskIds:all.map(x=>x.id),addedDeps:added,opts,...r});
+    const plan=validatePlan({id:uid(),source:this.provider,request,createdAt:new Date().toISOString(),taskIds:all.map(x=>x.id),addedDeps:added,opts,...r});
+    planUsage.record({source:this.provider,tasks:all.length,blocks:plan.blocks.length,rejected:(plan.rejected||[]).length,ms:Math.round(performance.now()-t0),ok:!plan.invalid});
+    return plan;
   }
 };
-/* Defensive check applied to every plan, whoever produced it. */
+/* Usage log + rate limit (Faz 8 · p8d). Per device; the server-side AI phase keeps the same shape
+   in an ai_usage_logs table. Nothing personal is stored: only time, counts and duration. */
+const PLAN_LIMIT={n:60,ms:HOUR},PLAN_LOG_KEY='usage.plan',PLAN_LOG_MAX=200;
+const planUsage={
+  list(){let a;try{a=JSON.parse(prefs.get(PLAN_LOG_KEY)||'[]')}catch{a=[]}
+    return Array.isArray(a)?a.filter(x=>x&&typeof x.at==='number'&&Number.isFinite(x.at)).slice(-PLAN_LOG_MAX):[]},
+  check(now=Date.now()){const recent=this.list().filter(x=>x.at>now-PLAN_LIMIT.ms);
+    if(recent.length<PLAN_LIMIT.n)return{ok:true,used:recent.length};
+    const oldest=Math.min(...recent.map(x=>x.at));return{ok:false,used:recent.length,waitMin:Math.max(1,Math.ceil((oldest+PLAN_LIMIT.ms-now)/60000))}},
+  record(e){const a=this.list();a.push({at:Date.now(),source:String(e.source).slice(0,10),tasks:+e.tasks||0,blocks:+e.blocks||0,rejected:+e.rejected||0,ms:+e.ms||0,ok:e.ok!==false});
+    prefs.set(PLAN_LOG_KEY,JSON.stringify(a.slice(-PLAN_LOG_MAX)))},
+  clear(){prefs.del(PLAN_LOG_KEY)}
+};
+/* Structured-output check applied to every plan, whoever produced it (Faz 8 · p8b).
+   1. the plan as a whole must match PLAN_SCHEMA — otherwise it is rejected entirely (invalid);
+   2. each block must match BLOCK_SCHEMA and make sense: its task exists and is open, end > start,
+      at most 12 h, not in the past, no overlap with another block of the same plan.
+   Dropped blocks are kept in plan.rejected with the reason, so the UI can say what was removed. */
 function validatePlan(plan){
-  const ok=b=>taskOf(b.taskId)&&validLocal(b.start)&&validLocal(b.end)&&new Date(b.end)>new Date(b.start)&&(new Date(b.end)-new Date(b.start))<=12*HOUR;
-  return{...plan,blocks:(plan.blocks||[]).filter(ok),unplaced:(plan.unplaced||[]).filter(u=>taskOf(u.taskId))};
+  const top=schemaErrors(PLAN_SCHEMA,plan);
+  if(top.length){console.warn('[plan] invalid',top.slice(0,5));return{...(plan&&typeof plan==='object'?plan:{}),invalid:true,errors:top.slice(0,10),blocks:[],unplaced:[],rejected:[]}}
+  const rejected=[],kept=[],now=Date.now();
+  plan.blocks.forEach((b,i)=>{
+    const e=schemaErrors(BLOCK_SCHEMA,b,'blocks['+i+']');let why=e.length?e[0][0]+': '+e[0][1]:'';
+    if(!why){const x=taskOf(b.taskId),a=+new Date(b.start),z=+new Date(b.end);
+      why=!x?'görev yok':x.status==='done'?'görev tamamlanmış':!(z>a)?'bitiş başlangıçtan önce':z-a>12*HOUR?'12 saatten uzun':z<now-60000&&!plan.replaces?'geçmişte':kept.some(k=>overlap(+new Date(k.start),+new Date(k.end),a,z)>0)?'başka blokla çakışıyor':''}
+    if(why)rejected.push({i,taskId:typeof b?.taskId==='string'?b.taskId.slice(0,64):'',why});else kept.push(b);
+  });
+  const unplaced=plan.unplaced.filter(u=>!schemaErrors(UNPLACED_SCHEMA,u).length&&taskOf(u.taskId));
+  return{...plan,blocks:kept,unplaced,rejected:[...(plan.rejected||[]),...rejected].slice(0,50)};
 }
 /* Impact of a plan: load per day before/after, and whether each task meets its deadline. */
 function planImpact(plan){
@@ -31,7 +60,8 @@ function planImpact(plan){
 /* Hours per project inside a plan — shows how competing projects share the time. */
 function planByProject(plan){const m=new Map();plan.blocks.forEach(b=>{const x=taskOf(b.taskId),k=x&&x.projectId||'';m.set(k,(m.get(k)||0)+(new Date(b.end)-new Date(b.start))/HOUR)});return[...m].map(([k,h])=>({p:projectOf(k)||null,h})).sort((a,b)=>b.h-a.h)}
 async function suggestFor(tasks,request=null,opts={}){
-  const r=await PlanningService.suggest(tasks,request,opts);
+  let r;try{r=await PlanningService.suggest(tasks,request,opts)}catch(e){toast(e&&e.userMsg||t('Öneri oluşturulamadı. Lütfen tekrar dene.'));if(!e||!e.userMsg)console.error('[plan]',e);return}
+  if(r.invalid){toast(t('Öneri doğrulamadan geçemedi; takvimin değişmedi.'));return}
   if(r.blocks.length&&UI.view!=='planning')setTimeout(()=>toast(t('Plan önerisi hazır · onayını bekliyor')),0);
   if(!r.blocks.length&&!r.unplaced.length){toast(t('Planlanacak süre yok. Görevlere tahmini süre ekle.'));UI.draft=null;return}
   UI.draft=r;UI.draftEdit=false;

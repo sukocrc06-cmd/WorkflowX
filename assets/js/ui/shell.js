@@ -5,7 +5,7 @@ const NAV=[['today','Bugün','sun'],['overview','Genel Bakış','home'],['tasks'
 const MOBILE_NAV=[['today','Bugün','sun'],['tasks','Görevler','tasks'],['calendar','Takvim','cal'],['projects','Projeler','folder']];
 const MORE_NAV=[['overview','Genel Bakış','home'],['planning','Planlama','spark'],['analytics','Analiz','chart'],['team','Ekip','users'],['roadmap','Yol Haritası','map'],['settings','Ayarlar','settings']];
 const langSwitch=()=>`<div class="langsw" role="group" aria-label="${t('Dil')}"><button type="button" class="${LANG==='tr'?'on':''}" data-a="lang" data-v="tr" aria-pressed="${LANG==='tr'}">TR</button><button type="button" class="${LANG==='en'?'on':''}" data-a="lang" data-v="en" aria-pressed="${LANG==='en'}">EN</button></div>`;
-const navOn=k=>UI.view===k||(k==='projects'&&UI.view==='project')||(k==='tasks'&&UI.view==='task');
+const navOn=k=>UI.view===k||(k==='projects'&&UI.view==='project')||(k==='tasks'&&UI.view==='task')||(k==='analytics'&&UI.view==='report');
 /* Workspace switcher: the personal workspace is the only one in this phase. Company and
    team workspaces are shown as what they will be, not as fake working options. */
 function wsSwitch(){

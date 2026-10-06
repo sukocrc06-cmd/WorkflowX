@@ -20,7 +20,7 @@ V.analytics=()=>{
   const pool=new Map(byTD);let hit=0;past.forEach(b=>{const k=b.taskId+'|'+dayKey(b.start),h=(new Date(b.end)-new Date(b.start))/HOUR,av=pool.get(k)||0,u=Math.min(h,av);hit+=u;pool.set(k,av-u)});
   const adh=blH?hit/blH*100:null;
   const projs=S.projects.filter(p=>!p.archived).map(p=>({p,g:projProgress(p),h:projectHealth(p)})).filter(r=>r.g.total);
-  return`<div class="page-h"><div><h1>${t('Analiz')}</h1><p>${t('Tüm değerler gerçek görev, blok, etkinlik ve zaman kayıtlarından hesaplanır.')}</p></div></div>
+  return`<div class="page-h"><div><h1>${t('Analiz')}</h1><p>${t('Tüm değerler gerçek görev, blok, etkinlik ve zaman kayıtlarından hesaplanır.')}</p></div><a class="btn" href="${hrefFor('report')}">${svg('chart')}${t('Haftalık rapor')}</a></div>
   <div class="kpis k4">
     <div class="kpi"><div class="l">${t('Tamamlanan görev')}</div><div class="v">${cu(done.length,'n')}<small> / ${all.length}</small></div></div>
     <div class="kpi"><div class="l">${t('Geciken görev')}</div><div class="v" style="${late.length?'color:var(--danger)':''}">${cu(late.length,'n')}</div></div>

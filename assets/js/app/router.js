@@ -35,6 +35,11 @@ function parseRoute(hash){
     const d=q.get('d');
     return{area:'app',view:'calendar',sub:a||null,param:d&&RX.day.test(d)&&!isNaN(parseDay(d))?d:null};
   }
+  if(v==='analytics'&&a){
+    if(a!=='report'||b)return{area:'app',view:'notfound'};
+    const w=q.get('w');
+    return{area:'app',view:'report',param:w&&RX.day.test(w)&&!isNaN(parseDay(w))?w:null};
+  }
   if(v==='settings'&&a)return SETTINGS_KEYS.includes(a)&&!b?{area:'app',view:'settings',sub:a}:{area:'app',view:'notfound'};
   if(a)return{area:'app',view:'notfound'};
   return{area:'app',view:v};
@@ -45,6 +50,7 @@ function hrefFor(view,param,sub){
     case 'task':return'#/app/tasks/'+encodeURIComponent(param);
     case 'project':return'#/app/projects/'+encodeURIComponent(param)+(sub&&sub!=='overview'?'/'+sub:'');
     case 'calendar':return'#/app/calendar'+(sub?'/'+sub:'')+(param?'?d='+param:'');
+    case 'report':return'#/app/analytics/report'+(param?'?w='+param:'');
     case 'landing':return'#/';
     default:return APP_VIEWS.includes(view)?'#/app/'+view:PUBLIC_PAGES.includes(view)?'#/'+view:'#/app';
   }

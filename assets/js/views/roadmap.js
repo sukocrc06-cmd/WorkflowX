@@ -1,6 +1,6 @@
 V.roadmap=()=>{
   const all=ROADMAP.flatMap(p=>p.items),cnt=s=>all.filter(i=>rmState(i[0])===s).length;
-  const vers=['MVP','V2','V3'].map(v=>({v,pct:rmPct(ROADMAP.filter(p=>p.v===v).flatMap(p=>p.items))}));
+  const vers=['MVP','V2','V3','V4'].map(v=>({v,pct:rmPct(ROADMAP.filter(p=>p.v===v).flatMap(p=>p.items))}));
   const stl={done:t('Tamamlandı'),proto:t('Kısmen'),todo:t('Başlanmadı')};
   return`<div class="page-h"><div><h1>${t('Yol Haritası')}</h1><p>${t('WorkFlowX’in geliştirme ilerlemesi. Bir maddeye tıklayarak durumunu değiştir.')}</p></div><button class="btn ghost" data-a="rmReset">${t('Varsayılana dön')}</button></div>
   <div class="panel" style="margin-bottom:16px"><div class="panel-b" style="padding-top:16px">

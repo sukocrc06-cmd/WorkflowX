@@ -173,6 +173,10 @@ const A={
       return KEEP_OPEN;
     });
   },
+  reportMd(d){const day=RX.day.test(d.w||'')?parseDay(d.w):new Date(),r=weeklyReport(day);download('workflowx-rapor-'+dayKey(r.from)+'.md',reportMarkdown(r),'text/markdown');toast(t('Rapor indirildi'))},
+  async reportCopy(d){const day=RX.day.test(d.w||'')?parseDay(d.w):new Date();try{await navigator.clipboard.writeText(reportMarkdown(weeklyReport(day)));toast(t('Rapor panoya kopyalandı'))}catch{toast(t('Kopyalanamadı. "Markdown indir" ile dosya olarak alabilirsin.'))}},
+  reportPrint(){window.print()},
+  usageClear(){planUsage.clear();render();toast(t('Kullanım kaydı temizlendi'))},
   userMenu(){const p=$('#upop'),b=$('#av');if(!p.hidden){p.hidden=true;b.setAttribute('aria-expanded','false');return}closePops();renderUserMenu();p.hidden=false;b.setAttribute('aria-expanded','true');p.querySelector('a,button')?.focus()},
   obSkip(){S.onboarded=true;OB.data={};save();closeDlg();render();toast(t('İstediğin zaman Ayarlar’dan çalışma saatlerini değiştirebilirsin.'))},
   obBack(){const f=dlg.querySelector('form');if(OB.step===3&&f){OB.data.project=f.elements.project.value;OB.data.task=f.elements.task.value}onboard(Math.max(1,OB.step-1))},
